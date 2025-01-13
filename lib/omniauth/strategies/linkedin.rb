@@ -99,12 +99,18 @@ module OmniAuth
       end
 
       def localized_field field_name
-        raw_info.dig(*[field_name, 'localized', field_locale(field_name)])
+        return unless localized_field_available? field_name
+
+        raw_info[field_name]['localized'][field_locale(field_name)]
       end
 
       def field_locale field_name
         "#{ raw_info[field_name]['preferredLocale']['language'] }_" \
           "#{ raw_info[field_name]['preferredLocale']['country'] }"
+      end
+
+      def localized_field_available? field_name
+        raw_info[field_name] && raw_info[field_name]['localized']
       end
 
       def picture_url
@@ -129,6 +135,12 @@ module OmniAuth
 
       def profile_endpoint
         "/v2/me?projection=(#{ fields.join(',') })"
+      end
+      
+      def token_params
+        super.tap do |params|
+          params.client_secret = options.client_secret
+        end
       end
     end
   end
